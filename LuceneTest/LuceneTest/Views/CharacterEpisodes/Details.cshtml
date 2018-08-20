@@ -1,0 +1,34 @@
+﻿@model LuceneTest.Models.CharacterEpisode
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>CharacterEpisode</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Character.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Character.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Episode.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Episode.Name)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
