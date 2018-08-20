@@ -1,0 +1,82 @@
+﻿using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Documents;
+using Lucene.Net.Index;
+using Lucene.Net.QueryParsers;
+using Lucene.Net.Search;
+using Lucene.Net.Store;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using WebApplication2.Models;
+
+namespace WebApplication2
+{
+    public class LuceneService
+    {
+        public static Directory CreateIndex(List<Character> characters)
+        {
+
+            var directory = new RAMDirectory();
+            using (Analyzer analyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
+            using (var writer = new IndexWriter(directory, analyzer, false, new IndexWriter.MaxFieldLength(1000)))
+            {
+                foreach (var person in characters)
+                {
+                    var doc = new Document();
+                    doc.Add(new Field("Name", person.Name.ToString(), Field.Store.YES, Field.Index.ANALYZED));
+                    doc.Add(new Field("PersonID", person.CharacterID.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+                    writer.AddDocument(doc);
+
+
+                }
+                writer.Optimize();
+                writer.Flush(true, true, true);
+            }
+            return directory;
+
+        }
+
+
+
+
+        public static List<Character> Szukaj(string textSearch, List<Character> list)
+        {
+            List<Character> newList = new List<Character>();
+            var ct = list;
+            var Index = CreateIndex(list);
+            using (var reader = IndexReader.Open(Index, true))
+            using (var searcher = new IndexSearcher(reader))
+            {
+                using (Analyzer analzyer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
+                {
+
+                    var queryParaser = new QueryParser(Lucene.Net.Util.Version.LUCENE_30, "Name", analzyer);
+                    var query = queryParaser.Parse(textSearch);
+                    var collector = TopScoreDocCollector.Create(1000, true);
+                    searcher.Search(query, collector);
+                    var matches = collector.TopDocs().ScoreDocs;
+                    foreach (var item in matches)
+                    {
+                        var id = item.Doc;
+                        var doc = searcher.Doc(id);
+                        var person = new Character();
+                        person.CharacterID = Int32.Parse(doc.GetField("PersonID").StringValue);
+                        person.Name = doc.GetField("Name").StringValue;
+                        
+                        newList.Add(person);
+
+
+
+
+                    }
+                }
+
+            }
+            return newList;
+
+        }
+
+    }
+}
